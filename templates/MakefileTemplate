@@ -1,0 +1,69 @@
+
+PATHB=build/
+PATHO=$(PATHB)objects/
+PATHS=source/
+PATHT=test/
+PATHH=header/
+PATHR=$(PATHB)results/
+
+SOURCES=$(wildcard $(PATHS)*.c)
+OBJS=$(patsubst $(PATHS)%,$(PATHO)%,$(SOURCES:.c=.o))
+
+CLEAN=rm -rf
+# Simulator
+SIMAVRDIR=/home/jeffrey/SimAVR/simavr/ # TODO System dependent
+SIMAVR=simavr
+
+# Compiler
+AVR=avr-gcc
+DEBUGFLAGS=-g -Og 
+SIMFLAGS=-D_SIMULATE_
+# Place the section past the end of reachable memory
+MMCUSECTION=-Wl,--undefined=_mmcu,--section-start=.mmcu=910000 
+FLAGS=-Wall -mmcu=$(MMCU) $(MMCUSECTION)
+INCLUDES=-I./$(PATHH) -I$(SIMAVRDIR)
+OBJCOPY=avr-objcopy
+OBJFLAGS=-j .text -j .data -O ihex
+# Debugger
+GDB=avr-gdb
+# Testing
+WHILELINENO=$$(grep -n -m 1 "while\s*(1)" source/main.c | cut -f1 -d:)
+TESTCOMMANDS=$(PATHT)commands.gdb
+TESTSCRIPT=$(PATHT)tests.gdb
+TESTING=-batch -x $(TESTCOMMANDS) -x $(TESTSCRIPT)
+# Programmer
+PROGRAM=avrdude
+PROGRAMMER=atmelice_isp
+MEMORY=flash
+OP=w # (w)rite, (r)ead, (v)erify; performed in the order specified
+VERBOSITY=-v -v 
+
+.PHONY: clean test
+all: $(PATHB)main.hex
+
+program: $(PATHB)main.hex
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):$(OP):$<
+
+simulate: $(PATHO)main.elf
+	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
+	$(GDB) $(TESTING)
+	@pkill simavr
+
+test: $(PATHO)main.elf
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(TESTSCRIPT)
+	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
+	$(GDB) $(TESTING)
+	@pkill simavr
+
+$(PATHB)main.hex: $(PATHO)main.elf
+	@$(OBJCOPY) $(OBJFLAGS) $< $@
+
+$(PATHO)main.elf: $(OBJS)
+	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -o $@ $<
+
+$(PATHO)%.o: $(PATHS)%.c
+	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<
+
+clean:
+	$(CLEAN) $(PATHO)*.o $(PATHO)*.elf $(PATHB)*.hex
+	$(CLEAN) $(PATHR)*.vcd
