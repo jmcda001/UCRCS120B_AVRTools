@@ -37,9 +37,36 @@ PROGRAMMER=atmelice_isp
 MEMORY=flash
 OP=w # (w)rite, (r)ead, (v)erify; performed in the order specified
 VERBOSITY=-v -v 
+MEMORY=flash
+HIGH=hfuse
+HDEFAULT=0x99
+H120=0xD9
+HTXT=hfuse.txt
+JTAGEN=0x40
+LOW=lfuse
+LDEFAULT=0x42
+L120=0xC2
+HEX=h
+RAW=m
 
 .PHONY: clean test
 all: $(PATHB)main.hex
+
+verifyFuses: 
+	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:-:$(HEX) -U $(LOW):r:-:$(HEX) 
+
+defaultFuses: 
+	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HDEFAULT):$(RAW) -U $(LOW):w:$(LDEFAULT):$(RAW) 
+
+fuses: 
+	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(H120):$(RAW) -U $(LOW):w:$(L120):$(RAW) 
+
+# Disable just the JTAG fuse
+disableJTAG: 
+	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:$(HTXT):$(HEX) 
+	@read -n 4 c < $(HTXT);echo -n "0x" > $(HTXT);echo "obase=16; $$(($$c | $(JTAGEN)))" | bc >> $(HTXT)
+	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HTXT):$(HEX) 
+	@rm -f $(HTXT)
 
 program: $(PATHB)main.hex
 	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):$(OP):$<

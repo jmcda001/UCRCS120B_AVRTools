@@ -1,9 +1,12 @@
 #!/bin/bash
+SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" > /dev/null 2>&1 && pwd )"
 
+echo 'Creating a new AVR project. Input the following or hit enter for the [default].'
 read -p 'Project name: ' name
 read -p 'Partners name [none]: ' partner
 read -p 'Microcontroller [atmega1284]: ' mmcu
 read -p 'Clock Frequency [8000000]: ' freq
+echo "Creating project..."
 
 if [ -z $name ] 
 then
@@ -15,6 +18,7 @@ mmcu=${mmcuu:-atmega1284}
 freq=${freq:-8000000}
 
 # Create the directory structure
+echo "Creating project directory structure..."
 mkdir -p $name/source
 mkdir -p $name/header
 mkdir -p $name/test
@@ -23,6 +27,7 @@ mkdir -p $name/build/objects
 mkdir -p $name/build/bin
 mkdir -p $name/turnin
 
+echo "Creating project templates for source, tests, and Makefile..."
 # Create the main.c file
 touch $name/source/main.c
 cat > $name/source/main.c << EOF
@@ -93,11 +98,22 @@ FILE mystdout = FDEV_SETUP_STREAM(uart_putchar,NULL,_FDEV_SETUP_WRITE);
 EOF
 
 # Create commands file for debugger
-cat templates/commands.gdb > $name/test/commands.gdb 
+cat $SCRIPTDIR/templates/commands.gdb > $name/test/commands.gdb 
 
 # Create test template file
 cat > $name/test/tests.gdb << EOF
 # Test file for $name
 
 EOF
-cat templates/tests.gdb >> $name/test/tests.gdb
+cat $SCRIPTDIR/templates/tests.gdb >> $name/test/tests.gdb
+
+echo -e "Project created, to continue working: \n"
+
+echo -e "\t1) Change working directory into project directory"
+echo -e "\t2) Initialize the directory to a GitHub repo: \n\t\t\$git init"
+echo -e "\t3) Add the files to the github repo: \n\t\t\$git add ."
+echo -e "\t4) Make a first commit: \n\t\t\$git commit -m \"Initializing repositor\""
+echo -e "\t5) Create a project at github.com"
+echo -e "\t6) In terminal, add the URL to your project: \n\t\t\$git remote add origin <remote repository URL>"
+echo -e "\t7) Verify the remote repository: \n\t\t\$git remote -v"
+echo -e "\t8) Push the changes to GitHub: \n\t\t\$git push -u origin master"
