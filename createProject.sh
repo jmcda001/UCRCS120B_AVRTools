@@ -62,7 +62,7 @@ echo '# University of California, Riverside' > $name/Makefile
 echo '# CS120B Makefile' >> $name/Makefile
 echo 'MMCU=atmega1284' >> $name/Makefile
 echo 'FREQ=8000000' >> $name/Makefile
-cat templates/MakefileTemplate >> $name/Makefile
+cat $SCRIPTDIR/templates/MakefileTemplate >> $name/Makefile
 
 # Create Simulator header
 cat > $name/header/simAVRHeader.h << EOF
