@@ -35,9 +35,8 @@ TESTING=-batch -x $(TESTCOMMANDS) -x $(TESTSCRIPT)
 PROGRAM=avrdude
 PROGRAMMER=atmelice_isp
 MEMORY=flash
-OP=w # (w)rite, (r)ead, (v)erify; performed in the order specified
-VERBOSITY=-v -v 
-MEMORY=flash
+#mem:op:file where op is (w)rite, (r)ead, (v)erify; performed in the order specified
+VERBOSITY=#-v -v ... etc. to have more verbose output. Normal output is usually enough unless something goes wrong. 
 HIGH=hfuse
 HDEFAULT=0x99
 H120=0xD9
@@ -53,19 +52,19 @@ RAW=m
 all: $(PATHB)main.hex
 
 verifyFuses: 
-	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:-:$(HEX) -U $(LOW):r:-:$(HEX) 
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:-:$(HEX) -U $(LOW):r:-:$(HEX) 
 
 defaultFuses: 
-	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HDEFAULT):$(RAW) -U $(LOW):w:$(LDEFAULT):$(RAW) 
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HDEFAULT):$(RAW) -U $(LOW):w:$(LDEFAULT):$(RAW) 
 
 fuses: 
-	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(H120):$(RAW) -U $(LOW):w:$(L120):$(RAW) 
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(H120):$(RAW) -U $(LOW):w:$(L120):$(RAW) 
 
 # Disable just the JTAG fuse
 disableJTAG: 
-	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:$(HTXT):$(HEX) 
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):r:$(HTXT):$(HEX) 
 	@read -n 4 c < $(HTXT);echo -n "0x" > $(HTXT);echo "obase=16; $$(($$c | $(JTAGEN)))" | bc >> $(HTXT)
-	$(PROGRAM) $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HTXT):$(HEX) 
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(HIGH):w:$(HTXT):$(HEX) 
 	@rm -f $(HTXT)
 
 program: $(PATHB)main.hex
