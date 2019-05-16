@@ -30,7 +30,9 @@ GDB=avr-gdb
 WHILELINENO=$$(grep -n -m 1 "while\s*(1)" source/main.c | cut -f1 -d:)
 TESTCOMMANDS=$(PATHT)commands.gdb
 TESTSCRIPT=$(PATHT)tests.gdb
-TESTING=-batch -x $(TESTCOMMANDS) -x $(TESTSCRIPT)
+INITDEBUGGER=$(PATHT)initDebugger.gdb
+TESTING=-batch -x $(TESTCOMMANDS) -x $(INITDEBUGGER) -x $(TESTSCRIPT)
+DEBUGGING=-x $(TESTCOMMANDS) -x $(INITDEBUGGER)
 # Programmer
 PROGRAM=avrdude
 PROGRAMMER=atmelice_isp
@@ -70,13 +72,14 @@ disableJTAG:
 program: $(PATHB)main.hex
 	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):$(OP):$<
 
-simulate: $(PATHO)main.elf
+debug: $(PATHO)main.elf
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
 	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
-	$(GDB) $(TESTING)
+	$(GDB) $(DEBUGGING)
 	@pkill simavr
 
 test: $(PATHO)main.elf
-	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(TESTSCRIPT)
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
 	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
 	$(GDB) $(TESTING)
 	@pkill simavr

@@ -100,6 +100,8 @@ EOF
 # Create commands file for debugger
 cat $SCRIPTDIR/templates/commands.gdb > $name/test/commands.gdb 
 
+# Create init file for debugger (sets break point)
+cp $SCRIPTDIR/templates/initDebugger.gdb $name/test/initDebugger.gdb
 # Create test template file
 cat > $name/test/tests.gdb << EOF
 # Test file for $name
