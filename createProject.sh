@@ -8,7 +8,7 @@ read -p 'Microcontroller [atmega1284]: ' mmcu
 read -p 'Clock Frequency [8000000]: ' freq
 echo "Creating project..."
 
-if [ -z $name ] 
+if [ -z "$name" ] 
 then
     echo 'Must have a project name';
     exit 1;
@@ -19,18 +19,18 @@ freq=${freq:-8000000}
 
 # Create the directory structure
 echo "Creating project directory structure..."
-mkdir -p $name/source
-mkdir -p $name/header
-mkdir -p $name/test
-mkdir -p $name/build/results
-mkdir -p $name/build/objects
-mkdir -p $name/build/bin
-mkdir -p $name/turnin
+mkdir -p "$name"/source
+mkdir -p "$name"/header
+mkdir -p "$name"/test
+mkdir -p "$name"/build/results
+mkdir -p "$name"/build/objects
+mkdir -p "$name"/build/bin
+mkdir -p "$name"/turnin
 
 echo "Creating project templates for source, tests, and Makefile..."
 # Create the main.c file
-touch $name/source/main.c
-cat > $name/source/main.c << EOF
+touch "$name"/source/main.c
+cat > "$name"/source/main.c << EOF
 /*	Author: $USER
  *  Partner(s) Name: $partner
  *	Lab Section:
@@ -58,14 +58,14 @@ EOF
 
 
 # Create the Makefile
-echo '# University of California, Riverside' > $name/Makefile
-echo '# CS120B Makefile' >> $name/Makefile
-echo 'MMCU=atmega1284' >> $name/Makefile
-echo 'FREQ=8000000' >> $name/Makefile
-cat $SCRIPTDIR/templates/MakefileTemplate >> $name/Makefile
+echo '# University of California, Riverside' > "$name"/Makefile
+echo '# CS120B Makefile' >> "$name"/Makefile
+echo 'MMCU=atmega1284' >> "$name"/Makefile
+echo 'FREQ=8000000' >> "$name"/Makefile
+cat $SCRIPTDIR/templates/MakefileTemplate >> "$name"/Makefile
 
 # Create Simulator header
-cat > $name/header/simAVRHeader.h << EOF
+cat > "$name"/header/simAVRHeader.h << EOF
 /* Debug information for SimAVR */
 #include <stdio.h>
 #ifndef F_CPU
@@ -98,16 +98,16 @@ FILE mystdout = FDEV_SETUP_STREAM(uart_putchar,NULL,_FDEV_SETUP_WRITE);
 EOF
 
 # Create commands file for debugger
-cat $SCRIPTDIR/templates/commands.gdb > $name/test/commands.gdb 
+cat $SCRIPTDIR/templates/commands.gdb > "$name"/test/commands.gdb 
 
 # Create init file for debugger (sets break point)
-cp $SCRIPTDIR/templates/initDebugger.gdb $name/test/initDebugger.gdb
+cp $SCRIPTDIR/templates/initDebugger.gdb "$name"/test/initDebugger.gdb
 # Create test template file
-cat > $name/test/tests.gdb << EOF
-# Test file for $name
+cat > "$name"/test/tests.gdb << EOF
+# Test file for "$name"
 
 EOF
-cat $SCRIPTDIR/templates/tests.gdb >> $name/test/tests.gdb
+cat $SCRIPTDIR/templates/tests.gdb >> "$name"/test/tests.gdb
 
 echo -e "Project created, to continue working: \n"
 
