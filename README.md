@@ -1,5 +1,5 @@
 # AVR Toolchain for CS120B and CS122A at UC Riverside
-This repository provides template Makefiles, main.c and header files along with a project creationg script for embedded systems courses at UC Riverside. 
+This repository provides template Makefiles, main.c and header files along with a project creation script for embedded systems courses at UC Riverside. 
 # Installation
 You need to make sure that you have downloaded and installed [SimAVR](https://github.com/buserror/simavr), [AVR toolchain](http://maxembedded.com/2015/06/setting-up-avr-gcc-toolchain-on-linux-and-mac-os-x/) which includes: AVR-GCC, AVR-GDB, and (optionally) AVRDUDES. You can also try installing [AVRDUDESS](https://github.com/zkemble/AVRDUDESS) (yes the extra 's' is intentional) for a graphical programming interface.  
  - Clone or download the repository to a location on your computer.
