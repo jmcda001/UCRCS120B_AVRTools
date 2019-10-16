@@ -112,15 +112,21 @@ cat $SCRIPTDIR/templates/tests.gdb >> $name/test/tests.gdb
 
 includeFreeRTOS=${includeFreeRTOS:N}
 if [ "$includeFreeRTOS" == "Y" ]; then
-    echo "Copying FreeRTOS files and updating Makefile..."
+    echo "Copying FreeRTOS files..."
     cp -R $SCRIPTDIR/FreeRTOS ./$name/
-    # Insert FreeRTOS directories
-    sed -i '/^# Simulator/i # FreeRTOS\nFREERTOSINC=-I./FreeRTOS/Source/include/ -I./FreeRTOS/Source/portable/GCC/ATMega323/ -I./FreeRTOS/' $name/Makefile 
-    sed -i '/^SOURCES.*/a FREERTOSSRC=FreeRTOS/Source/\nFREERTOSSOURCES=$(wildcard $(FREERTOSSRC)*.c)' $name/Makefile 
-    sed -i '/^OBJS/ s/$/ \\/' $name/Makefile
-    sed -i '/^OBJS.*/a \    $(patsubst $(FREERTOSSRC)%,$(PATHO)%,$(FREERTOSSOURCES:.c=.o))' $name/Makefile 
-    sed -i '/^clean.*/i $(PATHO)%.o: $(FREERTOSSRC)%.c\n\t$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<\n' $name/Makefile 
-    sed -i '/^INCLUDES/ s/$/ $(FREERTOSINC)/' $name/Makefile
+    cp ./$name/FreeRTOS/Source/portable/MemMang/heap_1.c ./$name/FreeRTOS/Source
+    echo "Updating Makefile..."
+    freertosdefs='# FreeRTOS specific\nFREERTOSDIR=FreeRTOS/\nFREERTOSSRC=FreeRTOS/Source/\nFREERTOSSOURCES=$(wildcard $(FREERTOSSRC)*.c)\nFREERTOSMEGAPORT=$(FREERTOSSRC)portable/GCC/ATMega1284/\nFREERTOSMEGAPORTSOURCES=$(wildcard $(FREERTOSMEGAPORT)*.c)\nFREERTOSOBJS=$(patsubst $(FREERTOSSRC)%,$(PATHO)%,$(FREERTOSSOURCES:.c=.o)) \\\n\t$(patsubst $(FREERTOSMEGAPORT)%,$(PATHO)%,$(FREERTOSMEGAPORTSOURCES:.c=.o))\nFREERTOSINC=-I$(FREERTOSSRC)include/ -I$(FREERTOSMEGAPORT) -I$(FREERTOSDIR)\nOBJS+= $(FREERTOSOBJS)\n'
+    freertosrules='$(PATHO)%.o: $(FREERTOSSRC)%.c\n\t@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<\n\n$(PATHO)%.o: $(FREERTOSMEGAPORT)%.c\n\t@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<\n'
+
+    sed "/^CLEAN.*/i $freertosdefs" $name/Makefile > $name/Makefile.new
+    mv $name/Makefile.new $name/Makefile
+
+    sed '/^INCLUDES/ s/$/ $(FREERTOSINC)/' $name/Makefile > $name/Makefile.new
+    mv $name/Makefile.new $name/Makefile
+
+    sed "/^clean.*/i $freertosrules" $name/Makefile > $name/Makefile.new
+    mv $name/Makefile.new $name/Makefile
 fi
 
 echo -e "Project created, to continue working: \n"

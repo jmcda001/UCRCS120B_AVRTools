@@ -88,7 +88,7 @@ $(PATHB)main.hex: $(PATHO)main.elf
 	@$(OBJCOPY) $(OBJFLAGS) $< $@
 
 $(PATHO)main.elf: $(OBJS)
-	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -o $@ $<
+	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -o $@ $^
 
 $(PATHO)%.o: $(PATHS)%.c
 	@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<
