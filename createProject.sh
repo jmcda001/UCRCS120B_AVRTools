@@ -119,13 +119,13 @@ if [ "$includeFreeRTOS" == "Y" ]; then
     freertosdefs='# FreeRTOS specific\nFREERTOSDIR=FreeRTOS/\nFREERTOSSRC=FreeRTOS/Source/\nFREERTOSSOURCES=$(wildcard $(FREERTOSSRC)*.c)\nFREERTOSMEGAPORT=$(FREERTOSSRC)portable/GCC/ATMega1284/\nFREERTOSMEGAPORTSOURCES=$(wildcard $(FREERTOSMEGAPORT)*.c)\nFREERTOSOBJS=$(patsubst $(FREERTOSSRC)%,$(PATHO)%,$(FREERTOSSOURCES:.c=.o)) \\\n\t$(patsubst $(FREERTOSMEGAPORT)%,$(PATHO)%,$(FREERTOSMEGAPORTSOURCES:.c=.o))\nFREERTOSINC=-I$(FREERTOSSRC)include/ -I$(FREERTOSMEGAPORT) -I$(FREERTOSDIR)\nOBJS+= $(FREERTOSOBJS)\n'
     freertosrules='$(PATHO)%.o: $(FREERTOSSRC)%.c\n\t@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<\n\n$(PATHO)%.o: $(FREERTOSMEGAPORT)%.c\n\t@$(AVR) $(DEBUGFLAGS) $(SIMFLAGS) $(FLAGS) $(INCLUDES) -c -o $@ $<\n'
 
-    sed "/^CLEAN.*/i $freertosdefs" $name/Makefile > $name/Makefile.new
+    awk -v "freertosdefs=$freertosdefs" '/^CLEAN.*/ && !x {print freertosdefs; x=1} 1' $name/Makefile > $name/Makefile.new
     mv $name/Makefile.new $name/Makefile
 
     sed '/^INCLUDES/ s/$/ $(FREERTOSINC)/' $name/Makefile > $name/Makefile.new
     mv $name/Makefile.new $name/Makefile
 
-    sed "/^clean.*/i $freertosrules" $name/Makefile > $name/Makefile.new
+    awk -v "freertosrules=$freertosrules" '/^clean.*/ && !x {print freertosrules; x=1} 1' $name/Makefile > $name/Makefile.new
     mv $name/Makefile.new $name/Makefile
 fi
 
