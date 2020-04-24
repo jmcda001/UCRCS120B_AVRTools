@@ -11,7 +11,7 @@ OBJS=$(patsubst $(PATHS)%,$(PATHO)%,$(SOURCES:.c=.o))
 
 CLEAN=rm -rf
 # Simulator
-SIMAVRDIR=/usr/local/Cellar/simavr/HEAD-f904f3c/
+SIMAVRDIR=SET YOUR SIMAVR DIRECTORY HERE
 SIMAVR=simavr
 
 # Compiler
@@ -79,7 +79,7 @@ debug: $(PATHO)main.elf
 	@pkill simavr
 
 test: $(PATHO)main.elf
-	@sed -i ".bak" "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
 	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
 	$(GDB) $(TESTING)
 	@pkill simavr
