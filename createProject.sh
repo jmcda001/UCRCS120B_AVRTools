@@ -113,6 +113,7 @@ echo -e "Project created, to continue working: \n"
 
 # The following was generously supplied by @JiachengHou-PnR
 echo -e "Initialize the directory to a GitHub repo."
+echo -e "Please enter your GitHub repo URL to link this project to GitHub."
 read -p 'git repo link [press ENTER to skip]: ' link
 
 if [ -n "$link" ]
