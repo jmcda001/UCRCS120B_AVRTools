@@ -14,7 +14,7 @@ then
     exit 1;
 fi
 
-mmcu=${mmcuu:-atmega1284}
+mmcu=${mmcu:-atmega1284}
 freq=${freq:-8000000}
 
 # Create the directory structure
@@ -60,8 +60,8 @@ EOF
 # Create the Makefile
 echo '# University of California, Riverside' > "$name"/Makefile
 echo '# CS120B Makefile' >> "$name"/Makefile
-echo 'MMCU=atmega1284' >> "$name"/Makefile
-echo 'FREQ=8000000' >> "$name"/Makefile
+echo "MMCU=${mmcu}" >> "$name"/Makefile
+echo "FREQ=${freq}" >> "$name"/Makefile
 cat $SCRIPTDIR/templates/MakefileTemplate >> "$name"/Makefile
 
 # Create Simulator header
@@ -114,7 +114,7 @@ echo -e "Project created, to continue working: \n"
 echo -e "\t1) Change working directory into project directory"
 echo -e "\t2) Initialize the directory to a GitHub repo: \n\t\t\$git init"
 echo -e "\t3) Add the files to the github repo: \n\t\t\$git add ."
-echo -e "\t4) Make a first commit: \n\t\t\$git commit -m \"Initializing repositor\""
+echo -e "\t4) Make a first commit: \n\t\t\$git commit -m \"Initializing repository\""
 echo -e "\t5) Create a project at github.com"
 echo -e "\t6) In terminal, add the URL to your project: \n\t\t\$git remote add origin <remote repository URL>"
 echo -e "\t7) Verify the remote repository: \n\t\t\$git remote -v"
