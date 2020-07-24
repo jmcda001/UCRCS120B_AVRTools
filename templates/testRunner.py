@@ -278,4 +278,4 @@ if 'watch' in globals():
         avr.addWatch(watchVariable)
 runTests(tests)
 displayChip(avr)
-avr.bp.commands = 'displayChip\n'
+#avr.bp.commands = 'displayChip\n' #Uncomment if you'd like to see the chip displayed at every break
