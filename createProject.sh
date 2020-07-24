@@ -97,6 +97,11 @@ FILE mystdout = FDEV_SETUP_STREAM(uart_putchar,NULL,_FDEV_SETUP_WRITE);
 /* End SimAVR section */
 EOF
 
+# Create Python test runner
+cat $SCRIPTDIR/templates/testRunner.py > "$name"/test/testRunner.py
+# Create Python test template file
+cat $SCRIPTDIR/templates/tests.py > "$name"/test/tests.py
+
 # Create commands file for debugger
 cat $SCRIPTDIR/templates/commands.gdb > "$name"/test/commands.gdb 
 
@@ -113,7 +118,7 @@ echo -e "Project created, to continue working: \n"
 
 echo -e "\t1) Change working directory into project directory"
 echo -e "\t2) Initialize the directory to a GitHub repo: \n\t\t\$git init"
-echo -e "\t3) Add the files to the github repo: \n\t\t\$git add ."
+echo -e "\t3) Add the files to the GitHub repo: \n\t\t\$git add ."
 echo -e "\t4) Make a first commit: \n\t\t\$git commit -m \"Initializing repository\""
 echo -e "\t5) Create a project at github.com"
 echo -e "\t6) In terminal, add the URL to your project: \n\t\t\$git remote add origin <remote repository URL>"
