@@ -7,6 +7,12 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 gdbLogger = logging.getLogger(name='GDB Logger')
 
+def report(msg,*args,**kwargs):
+    with open(resultsFN,'a') as f:
+        ending = '\n' if 'end' not in kwargs else kwargs['end']
+        f.write(f'{msg}{ending}')
+    print(msg,*args,**kwargs)
+
 class SyncCatch(gdb.Breakpoint):
     def __init__(self,avr,**kw):
         super(SyncCatch,self).__init__('TimerSet',temporary=True,*kw)
@@ -184,9 +190,9 @@ class runTests(gdb.Command):
                 self.skipped += 1
 
     def _report(self):
-        print('='*50)
-        print(f'Passed {self.passed} / {self.i} tests. Skipped {self.skipped} tests.')
-        print('='*50)
+        report('='*50)
+        report(f'Passed {self.passed} / {self.i} tests. Skipped {self.skipped} tests.')
+        report('='*50)
 
     def _runOne(self):
         while self.i < len(self.tests) and self.tests[self.i].skip:
@@ -194,10 +200,10 @@ class runTests(gdb.Command):
             self.i += 1
             self.skipped += 1
         if self.i < len(self.tests):
-            print('='*50)
-            print(f'Running test {self.i+1}: {self.tests[self.i].description}',end='')
+            report('='*50)
+            report(f'Test {self.i+1}: \"{self.tests[self.i].description}\"...',end='')
             passed,message = self.tests[self.i].run()
-            print(message)
+            report(message)
             self.passed += 1 if passed else 0
             self.i += 1
     def invoke(self,arg,tty):
