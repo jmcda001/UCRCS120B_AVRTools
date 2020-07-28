@@ -6,6 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 gdbLogger = logging.getLogger(name='GDB Logger')
+resultsFN = 'build/results/test_out.txt'
 
 def report(msg,*args,**kwargs):
     with open(resultsFN,'a') as f:
@@ -191,7 +192,7 @@ class runTests(gdb.Command):
 
     def _report(self):
         report('='*50)
-        report(f'Passed {self.passed} / {self.i} tests. Skipped {self.skipped} tests.')
+        report(f'Passed {self.passed}/{self.i} tests. Skipped {self.skipped} tests.')
         report('='*50)
 
     def _runOne(self):
