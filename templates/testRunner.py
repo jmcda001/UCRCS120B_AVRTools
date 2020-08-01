@@ -4,9 +4,15 @@ import time
 import math
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 gdbLogger = logging.getLogger(name='GDB Logger')
 resultsFN = 'build/results/test_out.txt'
+
+def report(msg,*args,**kwargs):
+    with open(resultsFN,'a') as f:
+        ending = '\n' if 'end' not in kwargs else kwargs['end']
+        f.write(f'{msg}{ending}')
+    print(msg,*args,**kwargs)
 
 def report(msg,*args,**kwargs):
     with open(resultsFN,'a') as f:
@@ -24,8 +30,6 @@ class SyncCatch(gdb.Breakpoint):
         self.avr.period=gdb.newest_frame().read_var("M")
         gdbLogger.info(f'Running with user set period of {self.avr.period}')
         return True
-
-
 
 class PortWatch(gdb.Breakpoint):
     def __init__(self,addr,mask=0xFF,**kw):
@@ -133,17 +137,21 @@ class AVR:
     def write(self,var,val):
         if var in self.ports:
             # Can't write to ports
-            pass
+            return False
         elif var in self.ddrs:
             # Tests shouldn't write to DDR
-            self.writeDDR(var,val)
+            self._writeDDR(var,val)
         elif var in self.pins:
-            self.writePort(var,val)
+            return self._writePort(var,val)
         else:
             # Find the variable and write to it.
-            pass
+            symbol = gdb.lookup_symbol(var)[0]
+            if symbol and symbol.is_valid():
+                gdb.execute(f'set {var}={val}')
+                return True
+            return False
 
-    def writePort(self,port,value): #TODO Is formatting handled correctly?
+    def _writePort(self,port,value): #TODO Is formatting handled correctly?
         port,mask = self.mapPin(port)
         if port not in self.pins:
             # Throw exception
@@ -153,15 +161,19 @@ class AVR:
         self.inferior.write_memory(self.base+self.pins[port],buff,1)
         return True
 
-    def readPort(self,port,f=hex,signed=False):
+    def read(self,var):
+        # Handle pin mapping
+        symbol = gdb.lookup_symbol(var)[0]
+        if symbol and symbol.is_valid():
+            return symbol.value(gdb.selected_frame())
+
+    def _readPort(self,port):
         mask = 0xFF
         if port in self.pinMapping:
             mask = self.pinMapping[port][1]
             port = self.pinMapping[port][0]
         value = int.from_bytes(self.inferior.read_memory(self.base+self.ports[port],1),
-                byteorder=self.endian,signed=signed) 
-        if f == hex:
-            return hex(value & mask)
+                byteorder=self.endian,signed='signed') 
         return (value & mask)
 
 class displayChip(gdb.Command):
@@ -226,33 +238,49 @@ class Test():
         self.skip = skip
     
     def run(self):
+        gdbLogger.debug('Setting preconditions')
         if self.preconditions:
             # Setup preconditions for test
             for var,val in self.preconditions:
                 self.program.write(var,val)
+        gdbLogger.debug(f'Running through {len(self.steps)} steps.')
         for step in self.steps:
             # Set inputs
             if 'inputs' in step:
+                gdbLogger.debug(f'Setting inputs: {step["inputs"]}')
                 for pin,value in step['inputs']:
-                    if not self.program.writePort(pin,value):
+                    if not self.program.write(pin,value):
                         return False,f'failed. Failed to write {value} to {pin}'
             # Run for specified amount of time/iterations
             if 'time' in step:
+                gdbLogger.debug(f'Run for {step["time"]}ms')
                 self.program.runForNms(step['time'])
             elif 'iterations' in step:
+                gdbLogger.debug(f'Run for {step["iterations"]} iterations')
                 self.program.runForNIterations(step['iterations'])
             else: # If not specified, run once
+                gdbLogger.debug(f'Run for 1 iterations')
                 self.program.runForNIterations(1)
             # Check any step level expectations
             if 'expected' in step:
+                gdbLogger.debug(f'Checking expected values: {step["expected"]}')
                 for port,value in step['expected']:
-                    actual = self.program.readPort(port)
-                    if actual != hex(value):
-                        return False,f'failed.\n\tExpected {port} := {hex(value)} but got {actual}'
+                    actual = self.program.read(port)
+                    try:
+                        expected = hex(value)
+                    except TypeError:
+                        expected = value
+                    if actual != value:
+                        return False,f'failed.\n\tExpected {port} := {value} but got {actual}'
+        gdbLogger.debug(f'Checking expected values in results: {self.expected}')
         for port,value in self.expected:
-            actual = self.program.readPort(port)
-            if actual != hex(value):
-                return False,f'failed.\n\tExpected {port} := {hex(value)} but got {actual}'
+            actual = self.program.read(port)
+            if isinstance(value,int) and actual == value:
+                return True,'passed'
+            elif isinstance(value,str) and str(actual) == value:
+                return True,'passed'
+            else:
+                return False,f'failed.\n\tExpected {port} := {value} but got {actual}'
         return True,'passed'
 
 gdb.execute('target remote :1234') # connect to SimAVR
@@ -285,4 +313,4 @@ if 'watch' in globals():
         avr.addWatch(watchVariable)
 runTests(tests)
 displayChip(avr)
-#avr.bp.commands = 'displayChip\n' #Uncomment if you'd like to see the chip displayed at every break
+#avr.bp.commands = 'displayChip\n' # Uncomment if you'd like to see the chip displayed at every break
