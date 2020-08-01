@@ -6,6 +6,13 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 gdbLogger = logging.getLogger(name='GDB Logger')
+resultsFN = 'build/results/test_out.txt'
+
+def report(msg,*args,**kwargs):
+    with open(resultsFN,'a') as f:
+        ending = '\n' if 'end' not in kwargs else kwargs['end']
+        f.write(f'{msg}{ending}')
+    print(msg,*args,**kwargs)
 
 def report(msg,*args,**kwargs):
     with open(resultsFN,'a') as f:
@@ -197,7 +204,7 @@ class runTests(gdb.Command):
 
     def _report(self):
         report('='*50)
-        report(f'Passed {self.passed} / {self.i} tests. Skipped {self.skipped} tests.')
+        report(f'Passed {self.passed}/{self.i} tests. Skipped {self.skipped} tests.')
         report('='*50)
 
     def _runOne(self):
@@ -207,7 +214,7 @@ class runTests(gdb.Command):
             self.skipped += 1
         if self.i < len(self.tests):
             report('='*50)
-            report(f'Running test {self.i+1}: {self.tests[self.i].description}',end='')
+            report(f'Test {self.i+1}: \"{self.tests[self.i].description}\"...',end='')
             passed,message = self.tests[self.i].run()
             report(message)
             self.passed += 1 if passed else 0
