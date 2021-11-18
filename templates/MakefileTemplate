@@ -80,13 +80,13 @@ program: $(PATHB)main.hex
 	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):w:$< #|| $(ADDVERBOSITY)
 
 debug: $(PATHO)main.elf
-	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITGDBDEBUGGER)
 	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
 	-$(GDB) $(GDBDEBUGGING)
 	@pkill simavr
 
 test: $(PATHO)main.elf
-	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
+	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITGDBDEBUGGER)
 	$(SIMAVR) -g -mmcu=$(MMCU) -f $(FREQ) $< &
 	-$(GDB) $(GDBTESTING)
 	@pkill simavr
